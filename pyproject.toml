@@ -1,0 +1,19 @@
+[project]
+name = "adora"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "fabienfrfr", email = "fabien.furfaro@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.uv.workspace]
+members = [
+    "adora",
+]
