@@ -1,0 +1,11 @@
+nodes:
+  - id: timer
+    path: dora-timer
+    args: --interval 0.033
+
+  - id: simulation
+    path: src/adora/simulation_op.py
+    inputs:
+      tick: timer/tick
+    outputs:
+      - image
