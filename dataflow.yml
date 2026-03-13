@@ -13,9 +13,8 @@ nodes:
       image: simulator/image
     outputs:
       - action
-
-  - id: recorder
-    path: nodes/recorder/recorder/main.py
+  
+  - id: visualizer
+    path: nodes/visualizer/visualizer/main.py
     inputs:
       image: simulator/image
-      action: vla-brain/action
