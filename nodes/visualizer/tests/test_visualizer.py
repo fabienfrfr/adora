@@ -1,11 +1,11 @@
-"""Test module for recorder package."""
+"""Test module for visualizer package."""
 
 import pytest
 
 
 def test_import_main():
     """Test importing and running the main function."""
-    from recorder.main import main
+    from visualizer.main import main
 
     # Check that everything is working, and catch Dora RuntimeError
     # as we're not running in a Dora dataflow.

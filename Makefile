@@ -3,6 +3,10 @@
 
 # --- Feature ---
 
+run-nodes:
+	uv run dora build dataflow.yml --uv
+	uv run dora run dataflow.yml --uv
+
 code-map: ## Export project structure to JSON
 	uv run python3 libs/code_mapper.py --to-json
 

@@ -1,4 +1,4 @@
-# recorder
+# visualizer
 
 ## Getting started
 
@@ -37,4 +37,4 @@ uv run pytest . # Test
 
 ## License
 
-recorder's code are released under the MIT License
+visualizer's code are released under the MIT License

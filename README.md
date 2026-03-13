@@ -19,7 +19,7 @@ devbox shell
 # Init Project
 uv init --python 3.11
 uv add dora-rs dora-rs-cli pybullet numpy opencv-python
-(mkdir -p nodes && cd nodes && uv run dora new --kind node simulator --lang python && uv run dora new --kind node vla-brain --lang python&& uv run dora new --kind node recorder --lang python)
+(mkdir -p nodes && cd nodes && uv run dora new --kind node simulator --lang python && uv run dora new --kind node vla-brain --lang python&& uv run dora new --kind node visualizer --lang python)
 
 # Create Components in the correct directory
 touch graph.yml
