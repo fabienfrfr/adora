@@ -1,28 +1,37 @@
-# ADORA
+# On-adora
+
+[![Codeberg](https://img.shields.io/badge/Codeberg-2185d0?style=for-the-badge&logo=gitea&logoColor=white)](https://codeberg.org/fabienfrfr/adora)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fabienfrfr/adora)
+
 
 **A**ccelerated **D**ynamics **O**rchestration for **R**obotic **A**utonomy.
+
+**Learning :** https://dora-rs.ai/docs/guides/getting-started/conversation_py
+
 
 ## Setup
 
 ```bash
 # Setup
-devbox init && devbox add python@3.13 uv curl
+devbox init && devbox add python@3.11 uv curl gnumake
 devbox shell
 
 # Init Project
-uv init --lib .
-uv add dora-rs pybullet numpy opencv-python
+uv init --python 3.11
+uv add dora-rs dora-rs-cli pybullet numpy opencv-python
+(mkdir -p nodes && cd nodes && uv run dora new --kind node simulator --lang python && uv run dora new --kind node vla-brain --lang python&& uv run dora new --kind node recorder --lang python)
 
 # Create Components in the correct directory
-touch src/adora/simulation_op.py src/adora/vla_op.py graph.yml
+touch graph.yml
 
 ```
 
 ## Launch
 
 ```bash
-dora up
-dora start graph.yml
+#dora destroy && pkill -9 dora
+uv run dora build dataflow.yml --uv
+uv run dora run dataflow.yml --uv
 
 ```
 

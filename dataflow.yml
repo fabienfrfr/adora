@@ -1,0 +1,21 @@
+nodes:
+  - id: simulator
+    path: nodes/simulator/simulator/main.py
+    inputs:
+      tick: dora/timer/millis/50
+      action: vla-brain/action
+    outputs:
+      - image
+
+  - id: vla-brain
+    path: nodes/vla-brain/vla_brain/main.py
+    inputs:
+      image: simulator/image
+    outputs:
+      - action
+
+  - id: recorder
+    path: nodes/recorder/recorder/main.py
+    inputs:
+      image: simulator/image
+      action: vla-brain/action

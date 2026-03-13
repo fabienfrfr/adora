@@ -1,15 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
-    "python@3.13",
+    "python@3.11",
     "uv@latest",
-    "curl@latest"
+    "curl@latest",
+    "gnumake@latest",
+    "rocm-runtime@latest",
+    "rocm-device-libs@latest",
+    "hip@latest"
   ],
   "shell": {
     "init_hook": [
-      "echo 'Welcome to devbox!' > /dev/null",
-      "export PATH=\"$HOME/.dora/bin:$PATH\"",
-      "command -v dora >/dev/null 2>&1 || { curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/dora-rs/dora/main/install.sh | sh; }"
+      "echo 'Welcome to devbox!' > /dev/null"
     ],
     "scripts": {
       "test": [
