@@ -11,6 +11,7 @@ nodes:
     path: nodes/vla-brain/vla_brain/main.py
     inputs:
       image: simulator/image
+      instruction: terminal_control/instruction
     outputs:
       - action
   
@@ -18,3 +19,8 @@ nodes:
     path: nodes/visualizer/visualizer/main.py
     inputs:
       image: simulator/image
+
+  - id: terminal_control
+    path: nodes/controller/controller/main.py
+    outputs:
+      - instruction

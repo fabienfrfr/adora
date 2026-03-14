@@ -7,7 +7,8 @@
     "gnumake@latest",
     "rocm-runtime@latest",
     "rocm-device-libs@latest",
-    "hip@latest"
+    "hip@latest",
+    "xterm@latest"
   ],
   "shell": {
     "init_hook": [
