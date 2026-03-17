@@ -11,6 +11,9 @@
 
 ## Setup
 
+
+(WIP : change devbox to devpod)
+
 ```bash
 # Setup
 devbox init && devbox add python@3.11 uv curl gnumake
