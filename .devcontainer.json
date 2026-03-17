@@ -1,0 +1,41 @@
+{
+  "name": "Adora-Dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspaces/adora",
+  "customizations": {
+    "devpod": {
+      "ide": "browser"
+    },
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "ms-pyright.pyright",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
+        "marimo-team.vscode-marimo", 
+        "ms-azuretools.vscode-docker",
+        "stateful.runme",
+        "eamodio.gitlens",
+        "bierner.markdown-mermaid",
+        "myriad-dreamin.tinymist",
+        "cweijan.vscode-office"
+      ],
+      "settings": {
+        "workbench.editorAssociations": {
+          "*.md": "default" 
+        },
+        "python.defaultInterpreterPath": "/workspaces/adora/.venv/bin/python",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.ruff": "always",
+          "source.organizeImports.ruff": "always"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "uv sync"
+}

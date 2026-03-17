@@ -1,4 +1,4 @@
-# recorder
+# controller
 
 ## Getting started
 
@@ -37,4 +37,4 @@ uv run pytest . # Test
 
 ## License
 
-recorder's code are released under the MIT License
+controller's code are released under the MIT License

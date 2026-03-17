@@ -11,11 +11,16 @@ nodes:
     path: nodes/vla-brain/vla_brain/main.py
     inputs:
       image: simulator/image
+      instruction: terminal_control/instruction
     outputs:
       - action
-
-  - id: recorder
-    path: nodes/recorder/recorder/main.py
+  
+  - id: visualizer
+    path: nodes/visualizer/visualizer/main.py
     inputs:
       image: simulator/image
-      action: vla-brain/action
+
+  - id: terminal_control
+    path: nodes/controller/controller/main.py
+    outputs:
+      - instruction

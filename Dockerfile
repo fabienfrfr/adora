@@ -1,32 +1,25 @@
-# 1. Use the official ultra-light uv-python image
-FROM astral-sh/uv:python3.11-slim
+FROM mcr.microsoft.com/devcontainers/python:3.11
 
-# 2. Minimum system deps for OpenCV and PyBullet (No junk)
+# Install system dependencies for OpenCV and AMD GPU rendering
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 libgl1-mesa-glx libglew-dev \
-    && rm -rf /var/lib/apt/lists/*
+    xterm \
+    libxcb1 \
+    libx11-6 \
+    libglx-mesa0 \
+    libgl1-mesa-dri \
+    libglapi-mesa \
+    libosmesa6 \
+    libexif12 \
+    libvulkan1 \
+    mesa-utils \
+    pciutils \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Install uv (modern python package manager)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/bin/uv
 
-# 3. Hardware switch (Build-time only)
-ARG ACCELERATOR=cuda
-RUN if [ "$ACCELERATOR" = "rocm" ] ; then \
-    uv pip install --system torch torchvision --index-url https://download.pytorch.org/whl/rocm6.2 ; \
-    else \
-    uv pip install --system torch torchvision ; \
-    fi
+# Create directory for DRM device identification
+RUN mkdir -p /usr/share/libdrm
 
-# 4. Install only the essentials
-# Using --no-cache to keep the image slim
-RUN uv pip install --system --no-cache \
-    "lerobot[smolvla]" \
-    dora-rs \
-    pybullet \
-    opencv-python
-
-# 5. Copy only the source code
-COPY src/ ./src/
-COPY graph.yml .
-
-# 6. Run
-CMD ["sh", "-c", "dora up && dora start graph.yml"]
+# Set library path for hardware rendering
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
