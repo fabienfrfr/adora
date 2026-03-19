@@ -1,20 +1,24 @@
-"""Genesis simulation operator with procedural terrain and a modern Tesla Model 3."""
+"""
+Genesis simulation operator for the MIT Racecar.
+Loads URDF/Xacro dynamically from GitHub and integrates with dora-rs.
+"""
 
 import io
-
-import genesis as gs
+import os
+import requests
+import xacro
 import numpy as np
-from dora import DoraStatus
+import genesis as gs
 from PIL import Image
-
+from dora import DoraStatus
 
 class Operator:
-    """Handles the Genesis physics simulation, camera rendering, and car control."""
+    """Handles dynamic loading of Xacro models and Genesis physics simulation."""
 
     def __init__(self):
-        """Initialize the scene, terrain, vehicle, and lighting."""
-        # Initialize Genesis with CPU backend for maximum stability
-        gs.init(backend=gs.cpu)
+        """Initialize Genesis, download the Racecar model, and build the scene."""
+        # Initialize Genesis (using GPU if available, fallback to CPU)
+        gs.init(backend=gs.gpu)
 
         self.scene = gs.Scene(
             rigid_options=gs.options.RigidOptions(
@@ -23,84 +27,94 @@ class Operator:
             )
         )
 
-        # --- PROCEDURAL TERRAIN ---
-        self.grid_size = 128
-        x = np.linspace(-15, 15, self.grid_size)
-        y = np.linspace(-15, 15, self.grid_size)
-        xv, yv = np.meshgrid(x, y)
-        dist = np.sqrt(xv**2 + yv**2)
-        z = 0.5 * np.sin(dist * 0.5) + (dist * 0.1)
+        # --- MODEL LOADING (Dynamic Xacro to URDF) ---
+        self.model_url = "https://raw.githubusercontent.com/mit-racecar/racecar_gazebo/master/racecar_description/urdf/racecar.xacro"
+        self.urdf_path = "processed_racecar.urdf"
+        
+        self._prepare_model()
 
-        self.terrain = self.scene.add_entity(
-            gs.morphs.Terrain(
-                height_field=z,
-                pos=(0, 0, 0),
-                horizontal_scale=0.4,
-                vertical_scale=1.5,
-            ),
-            surface=gs.surfaces.Rough(color=(0.2, 0.2, 0.2)),
-        )
-
-        # --- VEHICLE SETUP ---
-        car_model = "xml/tesla_model_3/tesla_model_3.xml"
+        # --- SCENE SETUP ---
+        self.plane = self.scene.add_entity(gs.morphs.Plane())
+        
         try:
             self.car = self.scene.add_entity(
-                gs.morphs.MJCF(file=car_model, pos=(0, 0, 1.0)),
+                gs.morphs.URDF(file=self.urdf_path, pos=(0, 0, 0.1), fixed=False)
             )
         except Exception as e:
-            print(f"⚠️ Could not load {car_model}: {e}")
-            print("🔄 Falling back to Panda robot arm.")
-            self.car = self.scene.add_entity(
-                gs.morphs.MJCF(
-                    file="xml/franka_emika_panda/panda.xml", pos=(0, 0, 1.0)),
-            )
-        # --- CAMERA ---
-        # Fixed 224x224 for VLA, FOV 50 for closer zoom
-        self.cam = self.scene.add_camera(res=(224, 224), fov=25)
+            print(f"⚠️ Error loading Racecar: {e}")
+            # Fallback to a primitive or simpler model if needed
+            self.car = self.scene.add_entity(gs.morphs.Box(pos=(0, 0, 0.5)))
 
-        # Finalize the scene
+        # --- CAMERA ---
+        self.cam = self.scene.add_camera(res=(224, 224), fov=30)
         self.scene.build()
 
-        # Control indices for the Tesla Model 3
-        self.drive_joints = [0, 1, 2, 3]  # All-wheel drive
-        self.steer_joints = [4, 5]        # Front steering
+        # Joint mapping based on the provided Xacro structure
+        self.drive_joints = ["left_rear_wheel_joint", "right_rear_wheel_joint"]
+        self.steer_joints = ["left_steering_hinge_joint", "right_steering_hinge_joint"]
+
+    def _prepare_model(self):
+        """Downloads Xacro, patches ROS paths, and converts to pure URDF."""
+        print(f"Fetching model from: {self.model_url}")
+        response = requests.get(self.model_url)
+        if response.status_code != 200:
+            raise RuntimeError("Failed to download Xacro from GitHub.")
+
+        # Patch 'package://' paths to relative local paths for Genesis
+        raw_xacro = response.text.replace("package://racecar_description/", "./")
+        
+        # Convert Xacro string to URDF
+        doc = xacro.process_utils.xml.dom.minidom.parseString(raw_xacro)
+        xacro.process_doc(doc)
+        
+        with open(self.urdf_path, "w", encoding="utf-8") as f:
+            f.write(doc.toprettyxml(indent='  '))
+        print(f"✅ Model converted and saved to {self.urdf_path}")
 
     def on_event(self, dora_event: dict, send_output) -> DoraStatus:
-        """Main event loop for the dora node."""
+        """Main event loop processing dora-rs inputs."""
         if dora_event["type"] == "INPUT":
             if dora_event["id"] == "tick":
-                self._handle_tick(send_output)
-            elif dora_event["id"] == "action":
-                self._handle_action(dora_event)
+                self._step_simulation(send_output)
+            elif dora_event["id"] == "control":
+                self._handle_control(dora_event)
         return DoraStatus.CONTINUE
 
-    def _handle_tick(self, send_output) -> None:
-        """Steps the physics and sends a high-contrast rendered frame."""
+    def _step_simulation(self, send_output):
+        """Advances physics and renders the current frame."""
         self.scene.step()
 
-        # Update camera to follow the car closely
+        # Camera tracking
         car_pos = self.car.get_pos()
-        # Offset moved from -3.5 to -2.5 to be physically closer to the trunk
         self.cam.set_pose(
             lookat=car_pos,
-            pos=car_pos + np.array([-2.5, 0, 1.2]),
+            pos=car_pos + np.array([-1.5, 0, 0.8]),
         )
 
-        # Render RGB frame
+        # Rendering
         rgb, _, _, _ = self.cam.render()
-        img = Image.fromarray(rgb, "RGB")
-
-        # Export as JPEG bytes
+        img = Image.fromarray(rgb)
+        
         buffer = io.BytesIO()
         img.save(buffer, format="JPEG")
         send_output("image", buffer.getvalue())
 
-    def _handle_action(self, event: dict) -> None:
-        """Processes incoming steering and throttle actions."""
-        # Convert arrow array to numpy
-        action = event["value"].to_numpy().view(np.float32)
-
-        if action.size >= 2:
-            # action[0]: Throttle, action[1]: Steering
-            self.car.control_dofs_velocity(action[0] * 30.0, self.drive_joints)
-            self.car.control_dofs_position(action[1] * 0.5, self.steer_joints)
+    def _handle_control(self, event: dict):
+        """Applies steering and velocity commands to the car joints."""
+        # Expecting a numpy array [steer_angle, velocity]
+        data = event["value"].to_numpy().view(np.float32)
+        
+        if data.size >= 2:
+            steer_angle, velocity = data[0], data[1]
+            
+            # Position control for steering (Ackermann-ish)
+            self.car.control_joint_position(
+                [steer_angle, steer_angle], 
+                joint_names=self.steer_joints
+            )
+            
+            # Velocity control for rear-wheel drive
+            self.car.control_joint_velocity(
+                [velocity, velocity], 
+                joint_names=self.drive_joints
+            )
