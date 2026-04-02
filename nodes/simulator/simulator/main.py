@@ -6,9 +6,9 @@ from simulation_op import Operator
 
 
 def main():
-    """Run the PyBullet simulation node."""
+    """Run the genesis-world simulation node."""
     node = Node()
-    # Initialize the PyBullet engine
+    # Initialize the genesis-world engine
     simulator = Operator()
 
     for event in node:

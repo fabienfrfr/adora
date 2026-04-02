@@ -21,7 +21,7 @@ devbox shell
 
 # Init Project
 uv init --python 3.11
-uv add dora-rs dora-rs-cli pybullet numpy opencv-python
+uv add dora-rs dora-rs-cli genesis-world numpy opencv-python
 (mkdir -p nodes && cd nodes && uv run dora new --kind node simulator --lang python && uv run dora new --kind node vla-brain --lang python && uv run dora new --kind node visualizer --lang python && uv run dora new --kind node controller --lang python)
 
 # Create Components in the correct directory
@@ -40,10 +40,10 @@ uv run dora run dataflow.yml --uv
 
 ## Architecture
 
-* **`simulation_op.py`**: Physics engine (PyBullet). Handles torque, mass, and friction.
+* **`simulation_op.py`**: Physics engine (genesis-world). Handles torque, mass, and friction.
 * **`vla_op.py`**: VLA (Vision-Language-Action) logic.
 * **`graph.yml`**: Dataflow orchestration via dora-rs.
 
 ---
 
-**Sources:** [dora-rs.ai](https://dora-rs.ai) | [pybullet.org](https://pybullet.org)
+**Sources:** [dora-rs.ai](https://dora-rs.ai) | [genesis-embodied-ai](https://genesis-embodied-ai.github.io/)
